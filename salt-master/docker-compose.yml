@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+    test-master:
+        build: ./
+        image: konstantine/salt-master:testing
+
+#Options for running step
+#        command: /usr/local/etc/run.sh
+#        container_name: test-master
+#        hostname: test-master
+#        volumes:
+#            - "/etc/localtime:/etc/localtime:ro"
+#            - "/srv/volumes/test-master/etc/salt/pki:/etc/salt/pki:rw"
+#        ports:
+#            - "4505:4505"
+#            - "4506:4506"
+#        environment:
+#            TZ: "Europe/Moscow"
+#            TERM: xterm
+#        restart: always
