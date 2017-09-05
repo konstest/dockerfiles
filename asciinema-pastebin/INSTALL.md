@@ -7,3 +7,7 @@ docker-compose run --rm web mix phx.gen.secret
 docker-compose up -d postgres
 docker-compose run --rm web setup
 docker-compose up -d
+
+# Using asciinema recorder with your instance
+
+echo "[api]\nurl = http://asciinema.private" > ~/.asciinema/config
