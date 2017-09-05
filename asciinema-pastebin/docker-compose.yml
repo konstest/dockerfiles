@@ -1,0 +1,107 @@
+version: '2'
+
+services:
+
+  nginx:
+    image: jwilder/nginx-proxy:alpine
+    container_name: asciinema-pastebin_nginx_proxy
+    ports:
+      - "80:80"
+#      - "443:443"
+    environment:
+      DEFAULT_HOST: "asciinema.private"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+#      - /srv/nginx/certs:/etc/nginx/certs:ro
+
+
+
+  postgres:
+    image: postgres
+    container_name: asciinema_postgres
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./volumes/postgres:/var/lib/postgresql/data
+
+  redis:
+    image: "redis:alpine"
+    container_name: asciinema_redis
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./volumes/asciinema_redis:/data
+
+  sidekiq:
+    build: .
+    image: asciinema/asciinema.org
+    container_name: asciinema_worker
+    restart: unless-stopped
+    links:
+      - redis
+      - postgres
+      - smtp
+    env_file: .env.production
+    command: "bundle exec sidekiq"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./uploads:/app/uploads
+      - ./log:/app/log
+      - /tmp/asciinema-web:/tmp
+
+  smtp:
+    image: namshi/smtp
+    container_name: asciinema_smtp
+    restart: unless-stopped
+    env_file: .env.production
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+
+  web:
+    build: .
+    image: asciinema/asciinema.org
+    container_name: asciinema_web
+    restart: unless-stopped
+    links:
+      - redis
+      - postgres
+      - smtp
+    depends_on:
+      - sidekiq
+    environment:
+      VIRTUAL_HOST: "asciinema.private"
+    env_file: .env.production
+    ports:
+      - "3000:80"
+    expose:
+      - "3000"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./uploads:/app/uploads
+      - ./log:/app/log
+      - /tmp/asciinema-web:/tmp
+      - ./volumes/cache:/cache
+
+
+  pastebin:
+    image: rlister/hastebin
+    container_name: pastebin
+    environment:
+      STORAGE_TYPE: "redis"
+      STORAGE_HOST: "redis"
+      STATIC_MAX_AGE: 90000
+      VIRTUAL_HOST: "pastebin.private"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    links:
+      - pastebin_redis:redis
+
+  pastebin_redis:
+    image: "redis:alpine"
+    container_name: pastebin_redis
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./volumes/pastebin_redis:/data
