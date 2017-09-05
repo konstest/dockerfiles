@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+
+  pastebin:
+    image: rlister/hastebin
+    environment:
+      STORAGE_TYPE: "redis"
+      STORAGE_HOST: "redis"
+      STATIC_MAX_AGE: 90000
+      VIRTUAL_HOST: "pastebin.local"
+    restart: always
+    links:
+      - redis
+
+  redis:
+    image: "redis:alpine"
+    restart: always
+
+  nginx:
+    image: jwilder/nginx-proxy:alpine
+    ports:
+      - "127.0.0.1:80:80"
+    environment:
+      DEFAULT_HOST: "pastebin.local"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
