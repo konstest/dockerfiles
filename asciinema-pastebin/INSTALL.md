@@ -1,4 +1,5 @@
 # https://github.com/asciinema/asciinema.org/blob/master/docs/INSTALL.md
+# https://asciinema.org/a/WDgST2gmFFIxlpUxvUWbZAqYr
 git clone --recursive https://github.com/asciinema/asciinema.org.git .
 git checkout -b my-company
 # editing .env.production and docker-compose.yml config files
